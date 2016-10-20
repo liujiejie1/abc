@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+
+	<head>
+		<title></title>
+		<meta charset="utf-8" />
+		<script type="text/javascript" src="jquery-1.8.3.min.js"></script>
+		<style type="text/css">
+			table {
+				border-collapse: collapse;
+				margin-bottom: 30px;
+			}
+		</style>
+	</head>
+	<script type="text/javascript">
+		var index;
+		var InfoArr = [];
+		function Message(stuId, userName, sex, age) {
+			this.stuId = stuId;
+			this.userName = userName;
+			this.sex = sex;
+			this.age = age;
+		}
+
+		//点击当前行把信息显示在文本框里
+		function showInfo(obj) {
+			$("#stuId").val(obj.children[0].innerHTML);
+			$("#userName").val(obj.children[1].innerHTML);
+			$("#ageId").val(obj.children[3].innerHTML);
+			var sex = obj.children[2].innerHTML;
+			if(sex == "男") {
+				$("input[name='sex']")[0].checked = true;
+			} else {
+				$("input[name='sex']")[1].checked = true;
+			}
+			index = $(obj).index();
+		}
+
+		//修改后保存
+		function saveAmend() {
+			//alert(index);
+			$("#t tr:eq(" + index + ")").children("td:eq(0)").text($("#stuId").val());
+			$("#t tr:eq(" + index + ")").children("td:eq(1)").text($("#userName").val());
+			$("#t tr:eq(" + index + ")").children("td:eq(3)").text($("#ageId").val());
+			if($("input[name='sex']")[0].checked == true) {
+				$("#t tr:eq(" + index + ")").children("td:eq(2)").text("男");
+			} else {
+				$("#t tr:eq(" + index + ")").children("td:eq(2)").text("女");
+			}
+			$("#t tr:eq(" + index + ")").css("background", "#fff");
+			var sex = $("#t tr:eq(" + index + ")").children("td:eq(2)").text();
+			var stuId = $("#t tr:eq(" + index + ")").children("td:eq(0)").text();
+			var userName = $("#t tr:eq(" + index + ")").children("td:eq(1)").text();
+			var age = $("#t tr:eq(" + index + ")").children("td:eq(3)").text();
+
+			var message = new Message(stuId, userName, sex, age);
+			InfoArr.splice(index - 1, 1, message);
+			var newStr = JSON.stringify(InfoArr);
+			localStorage.setItem("InfoArr", newStr);
+
+		}
+
+		//添加学生
+		function addInfo() {
+			if($("input[name='sex']")[0].checked == true) {
+				var sex = "男";
+			} else {
+				var sex = "女";
+			}
+			var stuId = $("#stuId").val();
+			var userName = $("#userName").val();
+			var age = $("#ageId").val();
+			$("#t ").append($("<tr onclick='showInfo(this)'>" +
+				"<td>" + stuId + "</td>" +
+				"<td>" + userName + "</td>" +
+				"<td>" + sex + "</td>" +
+				"<td>" + age + "</td>" +
+				"<td><input type='button' value='删除' /></td></tr>"));
+
+			//保存到localStroage里
+			var message = new Message(stuId, userName, sex, age);
+			InfoArr.push(message);
+			var str = JSON.stringify(InfoArr);
+			localStorage.setItem("InfoArr", str);
+
+			$("#stuId").val("");
+			$("#userName").val("");
+			$("#ageId").val("");
+		}
+
+		//点击当前行变颜色		
+		$(function() {
+			$("#t tr").live("click", function() {
+				$(this).css("background", "red").siblings().css("background", "#fff");
+			})
+		})
+
+		//获得保存在localStroage里的数据
+		function getINfo() {
+			var info = localStorage.getItem("InfoArr");
+			if(info != null) {
+				InfoArr = JSON.parse(info);
+				for(var i = 0; i < InfoArr.length; i++) {
+					$("#t").append($("<tr onclick='showInfo(this)'>" +
+						"<td>" + InfoArr[i].stuId + "</td>" +
+						"<td>" + InfoArr[i].userName + "</td>" +
+						"<td>" + InfoArr[i].sex + "</td>" +
+						"<td>" + InfoArr[i].age + "</td>" +
+						"<td><input type='button' value='删除'  /></td></tr>"));
+				}
+			}
+		}
+		//删除学生信息
+
+		$(function() {
+			getINfo();
+			$("tr input").live("click", function() {
+				var index1 = $("tr input").index($(this));
+				alert(index1)
+				var that = this;
+				if(confirm("要删除吗？")) {
+					$(that).parents("tr").remove();
+					InfoArr.splice(index1, 1);
+					var newStr = JSON.stringify(InfoArr);
+					localStorage.setItem("InfoArr", newStr);
+				}
+			})
+		});
+	</script>
+
+	<body>
+		<table id="t" border="1" width=400;height=300>
+			<caption>学生信息表</caption>
+			<tr>
+				<th>学号</th>
+				<th>姓名</th>
+				<th>性别</th>
+				<th>年龄</th>
+				<th>操作</th>
+			</tr>
+
+		</table>
+		学号：<input type="text" id="stuId" /><br/> 姓名：
+		<input type="text" id="userName" /><br/> 性别：
+		<input type="radio" name="sex" id="boy" />男 <input type="radio" name="sex" id="gril" />女<br/> 年龄:
+		<input type="number" min="18" max="70" value="20" id="ageId">
+		<br/>
+		<input type="button" value="添加" onclick="addInfo()" />
+		<input type="button" value="保存" onclick="saveAmend()" />
+
+	</body>
+
+</html>
